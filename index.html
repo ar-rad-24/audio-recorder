@@ -6,6 +6,7 @@
 </head>
 <body>
   <h2>ضبط صدا</h2>
+<div id="timer" style="font-size: 18px; margin-bottom: 10px;">00:00</div>
   <button id="start">شروع ضبط</button>
   <button id="stop" disabled>توقف ضبط</button>
   <p id="status"></p>
@@ -23,6 +24,25 @@
     startBtn.onclick = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder = new MediaRecorder(stream);
+let startTime;
+let timerInterval;
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    let elapsed = Math.floor((Date.now() - startTime) / 1000);
+    let minutes = Math.floor(elapsed / 60);
+    let seconds = elapsed % 60;
+    document.getElementById("timer").textContent =
+      `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  document.getElementById("timer").textContent = "00:00";
+}
+   startTimer();
       mediaRecorder.start();
       statusText.textContent = "در حال ضبط...";
       audioChunks = [];
@@ -46,6 +66,7 @@
 
     stopBtn.onclick = () => {
       mediaRecorder.stop();
+      stopTimer();
       startBtn.disabled = false;
       stopBtn.disabled = true;
     };
