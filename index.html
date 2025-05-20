@@ -50,9 +50,9 @@
     function startTimer() {
       startTime = Date.now();
       timerInterval = setInterval(() => {
-        let elapsed = Math.floor((Date.now() - startTime) / 1000);
-        let minutes = Math.floor(elapsed / 60);
-        let seconds = elapsed % 60;
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
         timerDisplay.textContent =
           `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       }, 1000);
@@ -64,33 +64,41 @@
     }
 
     startBtn.onclick = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
 
-      mediaRecorder.ondataavailable = event => {
-        audioChunks.push(event.data);
-      };
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        audioPlayback.src = audioUrl;
-        statusText.textContent = "ضبط تمام شد.";
-      };
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audioPlayback.src = audioUrl;
+          statusText.textContent = "ضبط تمام شد.";
+        };
 
-      audioChunks = [];
-      startTimer();
-      mediaRecorder.start();
-      statusText.textContent = "در حال ضبط...";
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
+        mediaRecorder.start();
+        startTimer(); // اینجا دقیقاً بعد از start
+
+        statusText.textContent = "در حال ضبط...";
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+      } catch (err) {
+        alert("دسترسی به میکروفون امکان‌پذیر نیست.");
+        console.error(err);
+      }
     };
 
     stopBtn.onclick = () => {
-      mediaRecorder.stop();
-      stopTimer();
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        stopTimer();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
     };
   </script>
 </body>
